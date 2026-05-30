@@ -12,6 +12,8 @@ export function createWebhookHandler(
     res.sendStatus(200)
 
     const payload = req.body as WebhookPayload
+    console.log(`[webhook] received type=${payload?.type} account=${payload?.data?.account}`)
+
     if (payload?.type !== 'StatementItem') return
     if (payload.data?.account !== jarId) return
 
@@ -23,6 +25,7 @@ export function createWebhookHandler(
       if (jar) {
         const updatedJar = { ...jar, balance: tx.balance }
         cache.updateJar(updatedJar)
+        console.log(`[webhook] new tx id=${tx.id} amount=+${(tx.amount / 100).toFixed(2)}₴ desc="${tx.description}" balance=${(tx.balance / 100).toFixed(2)}₴`)
         broadcast(tx, updatedJar)
       }
     }

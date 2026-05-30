@@ -10,7 +10,18 @@ import { startPoller } from './poller'
 export const cache = new Cache()
 
 const _app = express()
+_app.set('trust proxy', 1)
 _app.use(express.json())
+_app.use((req, res, next) => {
+  if (req.path.startsWith('/api') || req.path === '/webhook') {
+    const start = Date.now()
+    res.on('finish', () => {
+      const ip = req.headers['x-forwarded-for'] ?? req.ip ?? '?'
+      console.log(`[http] ${req.method} ${req.path} ${res.statusCode} ${Date.now() - start}ms ip=${ip}`)
+    })
+  }
+  next()
+})
 
 _app.get('/api/jar', (_req, res) => {
   const jar = cache.getJar()

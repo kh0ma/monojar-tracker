@@ -24,8 +24,10 @@ export function startPoller(
         from = lastTime !== null ? lastTime - 10 : now - Math.ceil(interval / 1000) - 10
       }
 
+      console.log(`[poller] tick from=${new Date(from * 1000).toISOString()}`)
       const txs = await fetchTransactions(token, jarId, from, now)
       const incoming = txs.filter(t => t.amount > 0)
+      console.log(`[poller] fetched ${txs.length} txs, ${incoming.length} incoming`)
       incoming.sort((a, b) => a.time - b.time)
 
       for (const tx of incoming) {
@@ -34,6 +36,7 @@ export function startPoller(
           if (jar) {
             const updatedJar = { ...jar, balance: tx.balance }
             cache.updateJar(updatedJar)
+            console.log(`[poller] new tx id=${tx.id} amount=+${(tx.amount / 100).toFixed(2)}₴ desc="${tx.description}" balance=${(tx.balance / 100).toFixed(2)}₴`)
             broadcast(tx, updatedJar)
           }
         }
@@ -42,6 +45,7 @@ export function startPoller(
       try {
         const jar = await fetchJarInfo(token, jarId)
         cache.updateJar(jar)
+        console.log(`[poller] jar balance=${(jar.balance / 100).toFixed(2)}₴${jar.goal ? ` goal=${(jar.goal / 100).toFixed(2)}₴` : ''}`)
       } catch {
         // non-fatal: keep cached jar info
       }

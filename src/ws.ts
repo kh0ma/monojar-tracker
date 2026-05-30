@@ -12,7 +12,9 @@ export function createWsServer(
 ): { broadcast: (tx: Transaction, jar: JarInfo) => void } {
   const wss = new WebSocketServer({ server, path: '/ws' })
 
-  wss.on('connection', ws => {
+  wss.on('connection', (ws, req) => {
+    const ip = req.headers['x-forwarded-for'] ?? req.socket.remoteAddress ?? '?'
+    console.log(`[ws] client connected ip=${ip} (active: ${wss.clients.size})`)
     let missedPongs = 0
 
     const pingTimer = setInterval(() => {
@@ -35,7 +37,10 @@ export function createWsServer(
       }
     })
 
-    ws.on('close', () => clearInterval(pingTimer))
+    ws.on('close', () => {
+      clearInterval(pingTimer)
+      console.log(`[ws] client disconnected ip=${ip} (active: ${wss.clients.size})`)
+    })
     ws.on('error', () => clearInterval(pingTimer))
 
     if (ws.readyState === WebSocket.OPEN) {
@@ -49,15 +54,15 @@ export function createWsServer(
 
   return {
     broadcast(tx: Transaction, jar: JarInfo): void {
+      const open = [...wss.clients].filter(c => c.readyState === WebSocket.OPEN)
+      console.log(`[ws] broadcast tx id=${tx.id} amount=+${(tx.amount / 100).toFixed(2)}₴ to ${open.length} client(s)`)
       const msg = JSON.stringify({
         type: 'transaction',
         data: tx,
         jar: { balance: jar.balance, goal: jar.goal },
       })
-      for (const client of wss.clients) {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(msg)
-        }
+      for (const client of open) {
+        client.send(msg)
       }
     },
   }
