@@ -15,12 +15,6 @@ export function createWsServer(
   wss.on('connection', ws => {
     let missedPongs = 0
 
-    ws.send(JSON.stringify({
-      type: 'init',
-      jar: cache.getJar(),
-      transactions: cache.getTransactions(),
-    }))
-
     const pingTimer = setInterval(() => {
       if (missedPongs >= 2) {
         ws.terminate()
@@ -28,7 +22,7 @@ export function createWsServer(
       }
       missedPongs++
       if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'ping' }))
+        ws.send(JSON.stringify({ type: 'ping' }), () => {})
       }
     }, pingIntervalMs)
 
@@ -43,6 +37,14 @@ export function createWsServer(
 
     ws.on('close', () => clearInterval(pingTimer))
     ws.on('error', () => clearInterval(pingTimer))
+
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'init',
+        jar: cache.getJar(),
+        transactions: cache.getTransactions(),
+      }))
+    }
   })
 
   return {
