@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monobank — Банка</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f2ec;
+    --yellow: #f5d547;
+    --green: #2dc97e;
+    --red: #e84040;
+    --gray: #1a1a1a;
+    --gray2: #2a2a2a;
+    --gray3: #444;
+    --muted: #888;
+    --font-display: 'Unbounded', sans-serif;
+    --font-body: 'Inter', sans-serif;
+  }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+
+  .dashboard { max-width: 600px; margin: 0 auto; }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  .jar-name {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gray3);
+    display: inline-block;
+    margin-right: 6px;
+    transition: background 0.3s;
+  }
+
+  .status-dot.live { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .status-dot.reconnecting { background: var(--yellow); }
+  .status-dot.error { background: var(--red); }
+
+  .status-text { font-size: 12px; color: var(--muted); }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card { background: var(--gray); border-radius: 12px; padding: 16px; }
+
+  .stat-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .stat-value { font-family: var(--font-display); font-size: 20px; font-weight: 700; line-height: 1; }
+  .stat-value.green { color: var(--green); }
+
+  .progress-section { background: var(--gray); border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+
+  .progress-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .progress-pct { font-family: var(--font-display); font-size: 20px; font-weight: 900; color: var(--yellow); }
+
+  .progress-bar-bg {
+    height: 6px;
+    background: var(--gray2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--yellow);
+    border-radius: 3px;
+    transition: width 0.6s ease;
+    width: 0%;
+  }
+
+  .progress-amounts { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  .progress-amounts span:first-child { color: var(--white); font-weight: 500; }
+
+  .feed-header {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .feed { display: flex; flex-direction: column; gap: 8px; }
+
+  .feed-item {
+    background: var(--gray);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slide-in 0.3s ease;
+    border-left: 3px solid transparent;
+  }
+
+  .feed-item.new { border-left-color: var(--green); }
+
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .feed-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--gray2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+    color: var(--yellow);
+    font-family: var(--font-display);
+  }
+
+  .feed-info { flex: 1; min-width: 0; }
+
+  .feed-desc {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+  }
+
+  .feed-time { font-size: 11px; color: var(--muted); }
+
+  .feed-amount {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--green);
+    white-space: nowrap;
+  }
+
+  .feed-empty {
+    text-align: center;
+    padding: 48px 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--green);
+    color: var(--black);
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 12px 24px;
+    border-radius: 100px;
+    transition: transform 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 100;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 400px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat-value { font-size: 16px; }
+    .jar-name { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="dashboard" id="dashboard">
+  <div class="top-bar">
+    <div class="jar-name" id="dash-name">Банка</div>
+    <div>
+      <span class="status-dot" id="status-dot"></span>
+      <span class="status-text" id="status-text">підключення...</span>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Зібрано</div>
+      <div class="stat-value green" id="stat-balance">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Платежів</div>
+      <div class="stat-value" id="stat-count">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Середній</div>
+      <div class="stat-value" id="stat-avg">—</div>
+    </div>
+  </div>
+
+  <div class="progress-section" id="progress-section" style="display:none">
+    <div class="progress-header">
+      <span class="progress-label">Прогрес до мети</span>
+      <span class="progress-pct" id="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-bar"></div>
+    </div>
+    <div class="progress-amounts">
+      <span id="prog-balance">0 ₴</span>
+      <span id="prog-goal">—</span>
+    </div>
+  </div>
+
+  <div class="feed-header">Останні надходження</div>
+  <div class="feed" id="feed">
+    <div class="feed-empty">Завантаження...</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let jarInfo = null;
+const knownIds = new Set();
+let totalCount = 0;
+let totalSum = 0;
+let wsReconnectTimer = null;
+let wsOfflineTimer = null;
+
+const $ = id => document.getElementById(id);
+
+function fmt(kopecks) {
+  const uah = kopecks / 100;
+  return uah.toLocaleString('uk-UA', { style: 'currency', currency: 'UAH', maximumFractionDigits: uah % 1 === 0 ? 0 : 2 });
+}
+
+function timeAgo(ts) {
+  const diff = Math.floor(Date.now() / 1000) - ts;
+  if (diff < 60) return 'щойно';
+  if (diff < 3600) return Math.floor(diff / 60) + ' хв тому';
+  if (diff < 86400) return Math.floor(diff / 3600) + ' год тому';
+  return new Date(ts * 1000).toLocaleDateString('uk-UA');
+}
+
+function initials(desc) {
+  if (!desc) return '?';
+  const words = desc.replace(/від:/gi, '').trim().split(/\s+/);
+  if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+  return (words[0] || '?')[0].toUpperCase();
+}
+
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function setStatus(state, text) {
+  $('status-dot').className = 'status-dot ' + state;
+  $('status-text').textContent = text;
+}
+
+function updateStats() {
+  const balance = jarInfo?.balance ?? totalSum;
+  $('stat-balance').textContent = fmt(balance);
+  $('stat-count').textContent = totalCount;
+  $('stat-avg').textContent = totalCount > 0 ? fmt(Math.round(totalSum / totalCount)) : '—';
+
+  if (jarInfo?.goal) {
+    const pct = Math.min(100, Math.round((balance / jarInfo.goal) * 100));
+    $('progress-section').style.display = 'block';
+    $('progress-pct').textContent = pct + '%';
+    $('progress-bar').style.width = pct + '%';
+    $('prog-balance').textContent = fmt(balance);
+    $('prog-goal').textContent = fmt(jarInfo.goal);
+  }
+}
+
+function addTransaction(tx, isNew = false) {
+  if (knownIds.has(tx.id)) return false;
+  knownIds.add(tx.id);
+
+  const feed = $('feed');
+  const empty = feed.querySelector('.feed-empty');
+  if (empty) empty.remove();
+
+  totalCount++;
+  totalSum += tx.amount;
+
+  const item = document.createElement('div');
+  item.className = 'feed-item' + (isNew ? ' new' : '');
+  const desc = tx.description || 'Поповнення';
+  item.innerHTML = `
+    <div class="feed-avatar">${initials(desc)}</div>
+    <div class="feed-info">
+      <div class="feed-desc">${desc}</div>
+      <div class="feed-time">${timeAgo(tx.time)}</div>
+    </div>
+    <div class="feed-amount">+${fmt(tx.amount)}</div>
+  `;
+  feed.insertBefore(item, feed.firstChild);
+  if (feed.children.length > 50) feed.removeChild(feed.lastChild);
+  if (isNew) setTimeout(() => item.classList.remove('new'), 4000);
+  return true;
+}
+
+async function loadInitialData() {
+  try {
+    const [txRes, jarRes] = await Promise.all([fetch('/api/transactions'), fetch('/api/jar')]);
+    if (!txRes.ok || !jarRes.ok) return;
+    const txs = await txRes.json();
+    jarInfo = await jarRes.json();
+    $('dash-name').textContent = jarInfo.title || 'Банка';
+    txs.sort((a, b) => a.time - b.time);
+    txs.forEach(tx => addTransaction(tx, false));
+    updateStats();
+  } catch (e) {
+    console.error('[init] failed to load data', e);
+  }
+}
+
+async function pollData() {
+  try {
+    const [txRes, jarRes] = await Promise.all([fetch('/api/transactions'), fetch('/api/jar')]);
+    if (!txRes.ok || !jarRes.ok) return;
+    const txs = await txRes.json();
+    const newJar = await jarRes.json();
+    jarInfo = newJar;
+
+    let newCount = 0;
+    txs.sort((a, b) => b.time - a.time);
+    txs.forEach(tx => { if (addTransaction(tx, true)) newCount++; });
+    if (newCount > 0) updateStats();
+
+    $('stat-balance').textContent = fmt(jarInfo.balance);
+    if (jarInfo.goal) {
+      const pct = Math.min(100, Math.round((jarInfo.balance / jarInfo.goal) * 100));
+      $('progress-section').style.display = 'block';
+      $('progress-pct').textContent = pct + '%';
+      $('progress-bar').style.width = pct + '%';
+      $('prog-balance').textContent = fmt(jarInfo.balance);
+    }
+  } catch (e) {
+    console.error('[poll] failed', e);
+  }
+}
+
+function connectWs() {
+  clearTimeout(wsReconnectTimer);
+  clearTimeout(wsOfflineTimer);
+
+  const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const ws = new WebSocket(`${protocol}//${location.host}/ws`);
+
+  ws.onopen = () => {
+    setStatus('live', 'онлайн');
+    clearTimeout(wsOfflineTimer);
+  };
+
+  ws.onmessage = e => {
+    const msg = JSON.parse(e.data);
+
+    if (msg.type === 'ping') {
+      ws.send(JSON.stringify({ type: 'pong' }));
+      return;
+    }
+
+    if (msg.type === 'init') {
+      if (msg.jar) {
+        jarInfo = msg.jar;
+        $('dash-name').textContent = jarInfo.title || 'Банка';
+      }
+      (msg.transactions || []).sort((a, b) => a.time - b.time);
+      (msg.transactions || []).forEach(tx => addTransaction(tx, false));
+      updateStats();
+      return;
+    }
+
+    if (msg.type === 'transaction') {
+      if (addTransaction(msg.data, true)) {
+        jarInfo = { ...jarInfo, ...msg.jar };
+        updateStats();
+        showToast(`+ ${fmt(msg.data.amount)}`);
+      }
+    }
+  };
+
+  ws.onclose = () => {
+    setStatus('reconnecting', 'перепідключення...');
+    wsOfflineTimer = setTimeout(() => setStatus('error', 'офлайн'), 10000);
+    wsReconnectTimer = setTimeout(connectWs, 3000);
+  };
+
+  ws.onerror = () => ws.close();
+}
+
+loadInitialData().then(() => {
+  connectWs();
+  setInterval(pollData, 60000);
+});
+</script>
+</body>
+</html>
