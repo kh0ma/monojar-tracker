@@ -1,0 +1,9 @@
+services:
+  mono-jar:
+    image: ghcr.io/OWNER/mono-jar:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file: .env
+    volumes:
+      - ./logs:/app/logs
