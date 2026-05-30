@@ -171,9 +171,7 @@
   .feed-desc {
     font-size: 13px;
     font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    word-break: break-word;
     margin-bottom: 2px;
   }
 
@@ -280,6 +278,9 @@ let wsOfflineTimer = null;
 
 const $ = id => document.getElementById(id);
 
+const bell = new Audio('/bell.mp3');
+function playBell() { bell.currentTime = 0; bell.play().catch(() => {}); }
+
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -305,6 +306,7 @@ function initials(desc) {
 }
 
 function showToast(msg) {
+  playBell();
   const t = $('toast');
   t.textContent = msg;
   t.classList.add('show');
