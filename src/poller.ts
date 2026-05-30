@@ -21,7 +21,7 @@ export function startPoller(
         isFirst = false
       } else {
         const lastTime = cache.getLastTransactionTime()
-        from = lastTime !== null ? lastTime - 10 : now - 70
+        from = lastTime !== null ? lastTime - 10 : now - Math.ceil(interval / 1000) - 10
       }
 
       const txs = await fetchTransactions(token, jarId, from, now)
