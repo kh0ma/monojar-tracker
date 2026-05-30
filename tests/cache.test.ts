@@ -33,6 +33,7 @@ describe('Cache', () => {
       for (let i = 0; i < 201; i++) cache.addTransaction(makeTx(`tx${i}`, i))
       expect(cache.getTransactions(300).length).toBe(200)
       expect(cache.getTransactions(300).find(t => t.id === 'tx0')).toBeUndefined()
+      expect(cache.addTransaction(makeTx('tx0', 0))).toBe(true)
     })
   })
 
