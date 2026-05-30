@@ -52,6 +52,11 @@ describe('fetchTransactions', () => {
     expect(await fetchTransactions('token', 'jar1', 0, 1000)).toEqual([])
   })
 
+  it('throws HTTP error on non-200', async () => {
+    mockFetch(401, {})
+    await expect(fetchTransactions('token', 'jar1', 0, 1000)).rejects.toThrow('HTTP 401')
+  })
+
   it('throws RATE_LIMIT on 429', async () => {
     mockFetch(429, {})
     await expect(fetchTransactions('token', 'jar1', 0, 1000)).rejects.toThrow('RATE_LIMIT')
