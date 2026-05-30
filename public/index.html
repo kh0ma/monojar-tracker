@@ -279,6 +279,10 @@ let wsOfflineTimer = null;
 
 const $ = id => document.getElementById(id);
 
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 function fmt(kopecks) {
   const uah = kopecks / 100;
   return uah.toLocaleString('uk-UA', { style: 'currency', currency: 'UAH', maximumFractionDigits: uah % 1 === 0 ? 0 : 2 });
@@ -344,7 +348,7 @@ function addTransaction(tx, isNew = false) {
   item.innerHTML = `
     <div class="feed-avatar">${initials(desc)}</div>
     <div class="feed-info">
-      <div class="feed-desc">${desc}</div>
+      <div class="feed-desc">${escHtml(desc)}</div>
       <div class="feed-time">${timeAgo(tx.time)}</div>
     </div>
     <div class="feed-amount">+${fmt(tx.amount)}</div>
@@ -380,7 +384,8 @@ async function pollData() {
 
     let newCount = 0;
     txs.sort((a, b) => b.time - a.time);
-    txs.forEach(tx => { if (addTransaction(tx, true)) newCount++; });
+    const now = Math.floor(Date.now() / 1000);
+    txs.forEach(tx => { if (addTransaction(tx, tx.time > now - 90)) newCount++; });
     if (newCount > 0) updateStats();
 
     $('stat-balance').textContent = fmt(jarInfo.balance);
