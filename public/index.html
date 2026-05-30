@@ -175,6 +175,8 @@
     margin-bottom: 2px;
   }
 
+  .feed-comment { font-size: 12px; color: var(--muted); font-style: italic; word-break: break-word; margin-bottom: 2px; }
+
   .feed-time { font-size: 11px; color: var(--muted); }
 
   .feed-amount {
@@ -348,10 +350,12 @@ function addTransaction(tx, isNew = false) {
   const item = document.createElement('div');
   item.className = 'feed-item' + (isNew ? ' new' : '');
   const desc = tx.description || 'Поповнення';
+  const commentHtml = tx.comment ? `<div class="feed-comment">${escHtml(tx.comment)}</div>` : '';
   item.innerHTML = `
     <div class="feed-avatar">${escHtml(initials(desc))}</div>
     <div class="feed-info">
       <div class="feed-desc">${escHtml(desc)}</div>
+      ${commentHtml}
       <div class="feed-time">${timeAgo(tx.time)}</div>
     </div>
     <div class="feed-amount">+${fmt(tx.amount)}</div>

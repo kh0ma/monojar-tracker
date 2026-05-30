@@ -14,6 +14,7 @@ export interface Transaction {
   time: number
   amount: number
   description: string
+  comment?: string
   balance: number
 }
 
