@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monobank — Банка</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f2ec;
+    --yellow: #f5d547;
+    --green: #2dc97e;
+    --red: #e84040;
+    --gray: #1a1a1a;
+    --gray2: #2a2a2a;
+    --gray3: #444;
+    --muted: #888;
+    --font-display: 'Unbounded', sans-serif;
+    --font-body: 'Inter', sans-serif;
+  }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+
+  .setup-screen {
+    max-width: 480px;
+    margin: 60px auto;
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 48px;
+  }
+
+  .setup-screen h1 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+
+  .setup-screen p {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--gray);
+    border: 1px solid var(--gray3);
+    border-radius: 8px;
+    color: var(--white);
+    font-family: var(--font-body);
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .field input:focus {
+    border-color: var(--yellow);
+  }
+
+  .field input::placeholder {
+    color: var(--gray3);
+  }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--yellow);
+    border: none;
+    border-radius: 8px;
+    color: var(--black);
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 14px;
+    margin-top: 8px;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.4; cursor: default; }
+
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 20px;
+    line-height: 1.6;
+    padding: 14px;
+    background: var(--gray);
+    border-radius: 8px;
+    border-left: 3px solid var(--yellow);
+  }
+
+  .hint a {
+    color: var(--yellow);
+  }
+
+  .hint code {
+    background: var(--gray2);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+  }
+
+  /* Dashboard */
+  .dashboard { display: none; max-width: 600px; margin: 0 auto; }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  .jar-name {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gray3);
+    display: inline-block;
+    margin-right: 6px;
+    transition: background 0.3s;
+  }
+
+  .status-dot.live { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .status-dot.error { background: var(--red); }
+
+  .status-text {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .btn-reset {
+    background: none;
+    border: 1px solid var(--gray3);
+    border-radius: 6px;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 11px;
+    font-family: var(--font-body);
+    padding: 5px 10px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-reset:hover { border-color: var(--white); color: var(--white); }
+
+  /* Stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--gray);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .stat-value.green { color: var(--green); }
+
+  /* Progress */
+  .progress-section {
+    background: var(--gray);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+
+  .progress-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .progress-pct {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--yellow);
+  }
+
+  .progress-bar-bg {
+    height: 6px;
+    background: var(--gray2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--yellow);
+    border-radius: 3px;
+    transition: width 0.6s ease;
+    width: 0%;
+  }
+
+  .progress-amounts {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .progress-amounts span:first-child { color: var(--white); font-weight: 500; }
+
+  /* Feed */
+  .feed-header {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .feed {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .feed-item {
+    background: var(--gray);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slide-in 0.3s ease;
+    border-left: 3px solid transparent;
+  }
+
+  .feed-item.new { border-left-color: var(--green); }
+
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .feed-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--gray2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+    color: var(--yellow);
+    font-family: var(--font-display);
+  }
+
+  .feed-info { flex: 1; min-width: 0; }
+
+  .feed-desc {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+  }
+
+  .feed-time {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .feed-amount {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--green);
+    white-space: nowrap;
+  }
+
+  .feed-empty {
+    text-align: center;
+    padding: 48px 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .countdown {
+    font-size: 11px;
+    color: var(--gray3);
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  .countdown span { color: var(--muted); }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--green);
+    color: var(--black);
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 12px 24px;
+    border-radius: 100px;
+    transition: transform 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 100;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .error-msg {
+    font-size: 13px;
+    color: var(--red);
+    margin-top: 8px;
+    min-height: 20px;
+  }
+
+  @media (max-width: 400px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat-value { font-size: 16px; }
+    .jar-name { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="setup-screen" id="setup">
+  <div class="logo">Monobank Банка</div>
+  <h1>Відстеження платежів</h1>
+  <p>Введи токен з api.monobank.ua та ID банки — і бачитимеш нові надходження в реальному часі.</p>
+
+  <div class="field">
+    <label>API Токен</label>
+    <input type="text" id="token-input" placeholder="u...XXXXXXXXXX" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="field">
+    <label>ID Банки</label>
+    <input type="text" id="jar-input" placeholder="Отримаєш після підключення токену" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="error-msg" id="error-msg"></div>
+
+  <button class="btn-primary" id="connect-btn">Підключитись</button>
+
+  <div class="hint">
+    <strong>Як отримати токен:</strong><br>
+    1. Зайди на <a href="https://api.monobank.ua" target="_blank">api.monobank.ua</a><br>
+    2. Авторизуйся через додаток<br>
+    3. Скопіюй токен<br><br>
+    <strong>Як знайти ID банки:</strong><br>
+    Після введення токену — натисни "Підключитись", список банок підтягнеться автоматично. Або знайди <code>id</code> банки в додатку.
+  </div>
+</div>
+
+<div class="dashboard" id="dashboard">
+  <div class="top-bar">
+    <div class="jar-name" id="dash-name">Банка</div>
+    <div>
+      <span class="status-dot" id="status-dot"></span>
+      <span class="status-text" id="status-text">підключення...</span>
+    </div>
+    <button class="btn-reset" id="reset-btn">Змінити</button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Зібрано</div>
+      <div class="stat-value green" id="stat-balance">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Платежів</div>
+      <div class="stat-value" id="stat-count">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Середній</div>
+      <div class="stat-value" id="stat-avg">—</div>
+    </div>
+  </div>
+
+  <div class="progress-section" id="progress-section" style="display:none">
+    <div class="progress-header">
+      <span class="progress-label">Прогрес до мети</span>
+      <span class="progress-pct" id="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-bar"></div>
+    </div>
+    <div class="progress-amounts">
+      <span id="prog-balance">0 ₴</span>
+      <span id="prog-goal">—</span>
+    </div>
+  </div>
+
+  <div class="feed-header">Останні надходження</div>
+  <div class="feed" id="feed">
+    <div class="feed-empty">Очікую перший платіж...<br><small>Дані оновлюються щохвилини</small></div>
+  </div>
+
+  <div class="countdown" id="countdown"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const BASE = 'https://api.monobank.ua';
+let token = '', jarId = '', jarData = null;
+let knownIds = new Set();
+let totalCount = 0, totalSum = 0;
+let countdownTimer = null, pollTimer = null;
+let nextPoll = 0;
+
+const $ = id => document.getElementById(id);
+
+function fmt(kopecks) {
+  const uah = kopecks / 100;
+  return uah.toLocaleString('uk-UA', { style: 'currency', currency: 'UAH', maximumFractionDigits: uah % 1 === 0 ? 0 : 2 });
+}
+
+function timeAgo(ts) {
+  const diff = Math.floor(Date.now() / 1000) - ts;
+  if (diff < 60) return 'щойно';
+  if (diff < 3600) return Math.floor(diff / 60) + ' хв тому';
+  if (diff < 86400) return Math.floor(diff / 3600) + ' год тому';
+  return new Date(ts * 1000).toLocaleDateString('uk-UA');
+}
+
+function initials(desc) {
+  if (!desc) return '?';
+  const words = desc.replace(/від:/gi, '').trim().split(/\s+/);
+  if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+  return (words[0] || '?')[0].toUpperCase();
+}
+
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function setStatus(state, text) {
+  const dot = $('status-dot');
+  dot.className = 'status-dot ' + state;
+  $('status-text').textContent = text;
+}
+
+function updateStats() {
+  $('stat-balance').textContent = fmt(jarData?.balance ?? totalSum);
+  $('stat-count').textContent = totalCount;
+  $('stat-avg').textContent = totalCount > 0 ? fmt(Math.round(totalSum / totalCount)) : '—';
+
+  if (jarData?.goal) {
+    const pct = Math.min(100, Math.round((jarData.balance / jarData.goal) * 100));
+    $('progress-section').style.display = 'block';
+    $('progress-pct').textContent = pct + '%';
+    $('progress-bar').style.width = pct + '%';
+    $('prog-balance').textContent = fmt(jarData.balance);
+    $('prog-goal').textContent = fmt(jarData.goal);
+  }
+}
+
+function addTransaction(tx, isNew = false) {
+  if (knownIds.has(tx.id)) return false;
+  knownIds.add(tx.id);
+
+  const feed = $('feed');
+  const empty = feed.querySelector('.feed-empty');
+  if (empty) empty.remove();
+
+  totalCount++;
+  totalSum += tx.amount;
+
+  const item = document.createElement('div');
+  item.className = 'feed-item' + (isNew ? ' new' : '');
+
+  const desc = tx.description || 'Поповнення';
+  const ini = initials(desc);
+
+  item.innerHTML = `
+    <div class="feed-avatar">${ini}</div>
+    <div class="feed-info">
+      <div class="feed-desc">${desc}</div>
+      <div class="feed-time">${timeAgo(tx.time)}</div>
+    </div>
+    <div class="feed-amount">+${fmt(tx.amount)}</div>
+  `;
+
+  feed.insertBefore(item, feed.firstChild);
+
+  if (feed.children.length > 50) {
+    feed.removeChild(feed.lastChild);
+  }
+
+  if (isNew) {
+    setTimeout(() => item.classList.remove('new'), 4000);
+  }
+
+  return true;
+}
+
+async function loadJarInfo() {
+  const r = await fetch(`${BASE}/personal/client-info`, {
+    headers: { 'X-Token': token }
+  });
+  if (r.status === 429) throw new Error('Забагато запитів — зачекай хвилину');
+  if (!r.ok) throw new Error('Помилка авторизації. Перевір токен.');
+  const data = await r.json();
+  const jar = (data.jars || []).find(j => j.id === jarId || j.sendId === jarId);
+  if (!jar) {
+    const names = (data.jars || []).map(j => `${j.title} (${j.id})`).join('\n');
+    throw new Error('Банку не знайдено.\n\nДоступні банки:\n' + (names || 'немає банок'));
+  }
+  return jar;
+}
+
+async function poll(isFirst = false) {
+  if (!token || !jarId) return;
+
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const from = isFirst ? now - 3 * 3600 : now - 70;
+
+    const r = await fetch(`${BASE}/personal/statement/${jarId}/${from}/${now}`, {
+      headers: { 'X-Token': token }
+    });
+
+    if (r.status === 429) {
+      setStatus('', 'ліміт запитів, чекаю...');
+      scheduleNext(60);
+      return;
+    }
+
+    if (!r.ok) throw new Error('Помилка API: ' + r.status);
+
+    const txs = await r.json();
+    setStatus('live', 'онлайн');
+
+    if (Array.isArray(txs)) {
+      const incoming = txs.filter(tx => tx.amount > 0);
+
+      if (isFirst) {
+        incoming.sort((a, b) => a.time - b.time);
+        incoming.forEach(tx => addTransaction(tx, false));
+        updateStats();
+      } else {
+        let newCount = 0;
+        incoming.sort((a, b) => b.time - a.time);
+        incoming.forEach(tx => {
+          if (addTransaction(tx, true)) newCount++;
+        });
+        if (newCount > 0) {
+          updateStats();
+          showToast(newCount === 1 ? '+ ' + fmt(incoming[0].amount) : `${newCount} нових платежів`);
+          try { new Audio().play(); } catch(e) {}
+        }
+      }
+
+      if (jarData) {
+        try {
+          jarData = await loadJarInfo();
+          $('stat-balance').textContent = fmt(jarData.balance);
+          if (jarData.goal) {
+            const pct = Math.min(100, Math.round((jarData.balance / jarData.goal) * 100));
+            $('progress-bar').style.width = pct + '%';
+            $('progress-pct').textContent = pct + '%';
+            $('prog-balance').textContent = fmt(jarData.balance);
+          }
+        } catch(e) {}
+      }
+    }
+
+  } catch (e) {
+    setStatus('error', 'помилка');
+    console.error(e);
+  }
+
+  scheduleNext(60);
+}
+
+function scheduleNext(seconds) {
+  clearTimeout(pollTimer);
+  clearInterval(countdownTimer);
+
+  nextPoll = Date.now() + seconds * 1000;
+
+  countdownTimer = setInterval(() => {
+    const left = Math.max(0, Math.ceil((nextPoll - Date.now()) / 1000));
+    $('countdown').innerHTML = `<span>Наступне оновлення через ${left} с</span>`;
+    if (left <= 0) clearInterval(countdownTimer);
+  }, 1000);
+
+  pollTimer = setTimeout(() => poll(false), seconds * 1000);
+}
+
+async function connect() {
+  const t = $('token-input').value.trim();
+  const j = $('jar-input').value.trim();
+  const btn = $('connect-btn');
+  const err = $('error-msg');
+
+  if (!t) { err.textContent = 'Введи API токен'; return; }
+  if (!j) { err.textContent = 'Введи ID банки'; return; }
+
+  token = t;
+  jarId = j;
+  btn.disabled = true;
+  btn.textContent = 'Підключення...';
+  err.textContent = '';
+
+  try {
+    jarData = await loadJarInfo();
+
+    localStorage.setItem('mono_token', token);
+    localStorage.setItem('mono_jar', jarId);
+
+    $('dash-name').textContent = jarData.title || 'Банка';
+    $('setup').style.display = 'none';
+    $('dashboard').style.display = 'block';
+
+    setStatus('', 'завантаження...');
+    updateStats();
+    await poll(true);
+
+  } catch(e) {
+    err.textContent = e.message;
+    btn.disabled = false;
+    btn.textContent = 'Підключитись';
+  }
+}
+
+$('connect-btn').addEventListener('click', connect);
+$('token-input').addEventListener('keydown', e => e.key === 'Enter' && $('jar-input').focus());
+$('jar-input').addEventListener('keydown', e => e.key === 'Enter' && connect());
+
+$('reset-btn').addEventListener('click', () => {
+  clearTimeout(pollTimer);
+  clearInterval(countdownTimer);
+  localStorage.removeItem('mono_token');
+  localStorage.removeItem('mono_jar');
+  token = ''; jarId = ''; jarData = null;
+  knownIds = new Set();
+  totalCount = 0; totalSum = 0;
+  $('feed').innerHTML = '<div class="feed-empty">Очікую перший платіж...<br><small>Дані оновлюються щохвилини</small></div>';
+  $('dashboard').style.display = 'none';
+  $('setup').style.display = 'block';
+  $('connect-btn').disabled = false;
+  $('connect-btn').textContent = 'Підключитись';
+});
+
+const saved_t = localStorage.getItem('mono_token');
+const saved_j = localStorage.getItem('mono_jar');
+if (saved_t && saved_j) {
+  $('token-input').value = saved_t;
+  $('jar-input').value = saved_j;
+}
+</script>
+</body>
+</html>
