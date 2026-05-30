@@ -11,5 +11,7 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY public ./public
+RUN addgroup -S app && adduser -S app -G app
+USER app
 EXPOSE 3000
 CMD ["node", "dist/server.js"]

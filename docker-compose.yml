@@ -1,6 +1,6 @@
 services:
   mono-jar:
-    image: ghcr.io/OWNER/mono-jar:latest
+    image: ghcr.io/OWNER/mono-jar:latest  # replace OWNER with your GitHub username
     restart: unless-stopped
     ports:
       - "3000:3000"
