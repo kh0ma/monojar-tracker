@@ -31,7 +31,11 @@ export function startPoller(
       for (const tx of incoming) {
         if (cache.addTransaction(tx)) {
           const jar = cache.getJar()
-          if (jar) broadcast(tx, jar)
+          if (jar) {
+            const updatedJar = { ...jar, balance: tx.balance }
+            cache.updateJar(updatedJar)
+            broadcast(tx, updatedJar)
+          }
         }
       }
 
