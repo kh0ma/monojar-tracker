@@ -280,8 +280,32 @@ let wsOfflineTimer = null;
 
 const $ = id => document.getElementById(id);
 
-const bell = new Audio('/bell.mp3');
-function playBell() { bell.currentTime = 0; bell.play().catch(() => {}); }
+let _audioCtx = null;
+let _bellBuffer = null;
+
+async function _initAudio() {
+  if (_bellBuffer) return;
+  try {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = await fetch('/bell.mp3').then(r => r.arrayBuffer());
+    _bellBuffer = await _audioCtx.decodeAudioData(buf);
+  } catch {}
+}
+
+// Decode on first interaction so the AudioContext is unlocked
+document.addEventListener('touchstart', _initAudio, { once: true });
+document.addEventListener('click', _initAudio, { once: true });
+
+function playBell() {
+  if (!_audioCtx || !_bellBuffer) return;
+  try {
+    if (_audioCtx.state === 'suspended') _audioCtx.resume();
+    const src = _audioCtx.createBufferSource();
+    src.buffer = _bellBuffer;
+    src.connect(_audioCtx.destination);
+    src.start(0);
+  } catch {}
+}
 
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
